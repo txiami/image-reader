@@ -6,7 +6,7 @@ interface ImageUploaderProps {
   onOCRComplete?: (text: string) => void
 }
 
-export function ImageUploader({ onImageSelected, onOCRComplete }: ImageUploaderProps) {
+export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 

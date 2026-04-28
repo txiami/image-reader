@@ -1,5 +1,13 @@
 import 'tesseract.js'
 
+declare global {
+  interface Window {
+    BarcodeDetector?: new (options: { formats: string[] }) => {
+      detect(image: HTMLImageElement): Promise<Array<{ rawValue: string }>>;
+    };
+  }
+}
+
 export async function scanBarcodeFromImage(
   imageData: string,
   onProgress?: (progress: number) => void
@@ -35,7 +43,7 @@ export async function scanBarcodeFromImage(
     onProgress?.(50)
     
     // Criar detector
-    const detector = new window.BarcodeDetector({
+    const detector = new window.BarcodeDetector!({
       formats: ['code_128', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf']
     })
     
