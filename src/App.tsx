@@ -12,7 +12,6 @@ import { ExtractedKey } from './stores/history'
 type ScanMode = 'barcode' | 'text' | 'both'
 
 export function App() {
-  const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [results, setResults] = useState<ExtractedKey[]>([])
   const [seedKey, setSeedKey] = useState('')
   const [scanMode, setScanMode] = useState<ScanMode>('both')
@@ -20,7 +19,6 @@ export function App() {
   const { extractFromImage, isProcessing, progress, status, error, setError, ocrText } = useOCR()
 
   const handleImageSelected = async (imageData: string) => {
-    setCurrentImage(imageData)
     setResults([])
 
     const enableBarcode = scanMode === 'barcode' || scanMode === 'both'
