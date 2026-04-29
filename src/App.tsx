@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { ScanLine, Copy, Key, ScanBarcode, Type } from 'lucide-react'
+import { ScanLine, Copy, Key, ScanBarcode, Type, Camera } from 'lucide-react'
 import { ImageUploader } from './components/ImageUploader'
 import { ProgressBar } from './components/ProgressBar'
 import { ResultDisplay } from './components/ResultDisplay'
 import { ErrorDisplay } from './components/ErrorDisplay'
 import { History } from './components/History'
-import { EmptyState } from './components/EmptyState'
+import { CameraScanner } from './components/CameraScanner'
 import { useOCR } from './hooks/useOCR'
 import { ExtractedKey } from './stores/history'
 
@@ -16,42 +16,25 @@ export function App() {
   const [results, setResults] = useState<ExtractedKey[]>([])
   const [seedKey, setSeedKey] = useState('')
   const [scanMode, setScanMode] = useState<ScanMode>('both')
+  const [isCameraOpen, setIsCameraOpen] = useState(false)
   const { extractFromImage, isProcessing, progress, status, error, setError, ocrText } = useOCR()
 
   const handleImageSelected = async (imageData: string) => {
     setCurrentImage(imageData)
     setResults([])
-    
+
     const enableBarcode = scanMode === 'barcode' || scanMode === 'both'
     const enableText = scanMode === 'text' || scanMode === 'both'
-    
+
     const extracted = await extractFromImage(
-      imageData, 
-      seedKey || undefined, 
+      imageData,
+      seedKey || undefined,
       enableBarcode,
       enableText
     )
     if (extracted.length > 0) {
       setResults(extracted)
     }
-  }
-
-  const handleUploadClick = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (ev) => {
-          const data = ev.target?.result as string
-          handleImageSelected(data)
-        }
-        reader.readAsDataURL(file)
-      }
-    }
-    input.click()
   }
 
   return (
@@ -77,9 +60,18 @@ export function App() {
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
         <div className="space-y-6">
           <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
-            <h2 className="text-sm font-medium text-slate-400 mb-4">
-              Selecione uma imagem
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-medium text-slate-400">
+                Selecione uma imagem
+              </h2>
+              <button
+                onClick={() => setIsCameraOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-900/20"
+              >
+                <Camera className="w-4 h-4" />
+                Abrir Câmera
+              </button>
+            </div>
             <ImageUploader onImageSelected={handleImageSelected} />
           </div>
 
@@ -111,7 +103,7 @@ export function App() {
             <h3 className="text-sm font-medium text-slate-400">
               Escolha o método de extração
             </h3>
-            
+
             <div className="grid grid-cols-1 gap-3">
               <label className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${scanMode === 'barcode' ? 'border-blue-500 bg-blue-500/10' : 'border-slate-700 hover:border-slate-600'}`}>
                 <input
@@ -182,7 +174,11 @@ export function App() {
           )}
 
           {error && (
-            <ErrorDisplay message={error.message} onDismiss={() => setError(null)} />
+            <ErrorDisplay 
+              message={error.message} 
+              type={error.type} 
+              onDismiss={() => setError(null)} 
+            />
           )}
 
           {results.length > 0 && !isProcessing && (
@@ -191,10 +187,6 @@ export function App() {
                 <ResultDisplay key={result.id} result={result} />
               ))}
             </div>
-          )}
-
-          {!currentImage && results.length === 0 && !isProcessing && (
-            <EmptyState onUpload={handleUploadClick} />
           )}
 
           {ocrText && (
@@ -220,6 +212,13 @@ export function App() {
           <History />
         </div>
       </main>
+
+      {isCameraOpen && (
+        <CameraScanner
+          onScan={handleImageSelected}
+          onClose={() => setIsCameraOpen(false)}
+        />
+      )}
 
       <footer className="border-t border-slate-800 py-4 mt-auto">
         <div className="max-w-3xl mx-auto px-4 text-center">

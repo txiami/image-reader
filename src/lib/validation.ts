@@ -8,15 +8,19 @@ export function validateAccessKey(key: string): boolean {
   const base = cleanKey.substring(0, 43)
   const checkDigit = parseInt(cleanKey.charAt(43), 10)
 
-  const multipliers = [4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-
+  // Algoritmo Módulo 11 (Padrão SEFAZ para NF-e/NFC-e)
+  // Pesos: 2, 3, 4, 5, 6, 7, 8, 9 (da direita para a esquerda)
   let sum = 0
-  for (let i = 0; i < 43; i++) {
-    sum += parseInt(base.charAt(i), 10) * multipliers[i]
+  let weight = 2
+  
+  for (let i = 42; i >= 0; i--) {
+    sum += parseInt(base.charAt(i), 10) * weight
+    weight++
+    if (weight > 9) weight = 2
   }
 
   const remainder = sum % 11
-  const calculatedDigit = remainder === 0 ? 0 : 11 - remainder
+  const calculatedDigit = (remainder === 0 || remainder === 1) ? 0 : 11 - remainder
 
   return calculatedDigit === checkDigit
 }
